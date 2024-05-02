@@ -32,3 +32,6 @@ C:\Users\PC\AkaraWPF\RecoilMacro\obj\Debug\net8.0-windows\refint\RecoilMacro.dll
 C:\Users\PC\AkaraWPF\RecoilMacro\obj\Debug\net8.0-windows\RecoilMacro.pdb
 C:\Users\PC\AkaraWPF\RecoilMacro\obj\Debug\net8.0-windows\RecoilMacro.genruntimeconfig.cache
 C:\Users\PC\AkaraWPF\RecoilMacro\obj\Debug\net8.0-windows\ref\RecoilMacro.dll
+C:\Users\PC\AkaraWPF\RecoilMacro\obj\Debug\net8.0-windows\RecoilMacro.sourcelink.json
+C:\Users\PC\AkaraWPF\RecoilMacro\bin\Debug\net8.0-windows\RecoilMacro.dll.config
+C:\Users\PC\AkaraWPF\RecoilMacro\obj\Debug\net8.0-windows\RecoilMacro_Content.g.cs

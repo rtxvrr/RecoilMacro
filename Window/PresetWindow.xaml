@@ -5,7 +5,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:RecoilMacro.Window"
         mc:Ignorable="d"
-        Title="Enter Preset Name" Height="150" Width="300">
+        Title="Enter Preset Name" Height="150" Width="300"
+        WindowStartupLocation="CenterScreen" ResizeMode="NoResize">
     <StackPanel Margin="10">
         <Label Content="{Binding Path=Title}"/>
         <TextBox x:Name="inputTextBox"/>

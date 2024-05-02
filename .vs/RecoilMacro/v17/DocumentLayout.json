@@ -1,12 +1,36 @@
 {
   "Version": 1,
   "WorkspaceRootPath": "C:\\Users\\PC\\AkaraWPF\\RecoilMacro\\",
-  "Documents": [],
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{2B9A76E2-50F8-479D-942F-724E5205622A}|RecoilMacro.csproj|c:\\users\\pc\\akarawpf\\recoilmacro\\recoilmacro.csproj||{04B8AB82-A572-4FEF-95CE-5222444B6B64}|",
+      "RelativeMoniker": "D:0:0:{2B9A76E2-50F8-479D-942F-724E5205622A}|RecoilMacro.csproj|solutionrelative:recoilmacro.csproj||{04B8AB82-A572-4FEF-95CE-5222444B6B64}|"
+    }
+  ],
   "DocumentGroupContainers": [
     {
       "Orientation": 0,
       "VerticalTabListWidth": 256,
-      "DocumentGroups": []
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 0,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "RecoilMacro",
+              "DocumentMoniker": "C:\\Users\\PC\\AkaraWPF\\RecoilMacro\\RecoilMacro.csproj",
+              "RelativeDocumentMoniker": "RecoilMacro.csproj",
+              "ToolTip": "C:\\Users\\PC\\AkaraWPF\\RecoilMacro\\RecoilMacro.csproj",
+              "RelativeToolTip": "RecoilMacro.csproj",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2024-05-02T08:21:01.34Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
     }
   ]
 }

@@ -1,0 +1,8 @@
+C:\Users\PC\Desktop\New folder (2)\RecoilMacro.pdb
+C:\Users\PC\Desktop\New folder (2)\RecoilMacro.dll.config
+C:\Users\PC\Desktop\New folder (2)\D3DCompiler_47_cor3.dll
+C:\Users\PC\Desktop\New folder (2)\PenImc_cor3.dll
+C:\Users\PC\Desktop\New folder (2)\PresentationNative_cor3.dll
+C:\Users\PC\Desktop\New folder (2)\vcruntime140_cor3.dll
+C:\Users\PC\Desktop\New folder (2)\wpfgfx_cor3.dll
+C:\Users\PC\Desktop\New folder (2)\RecoilMacro.exe
