@@ -1,0 +1,8 @@
+[
+  {
+    "Name": "test",
+    "Intensity": 1.3,
+    "BothButtonsRequired": true,
+    "WinApiMethod": true
+  }
+]

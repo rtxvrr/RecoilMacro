@@ -1,0 +1,41 @@
+﻿<Window x:Class="RecoilMacro.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:RecoilMacro"
+        mc:Ignorable="d"
+        Title="123" Height="250" Width="350" 
+        WindowStartupLocation="CenterScreen">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition></RowDefinition>
+            <RowDefinition></RowDefinition>
+            <RowDefinition></RowDefinition>
+        </Grid.RowDefinitions>
+        <Label Grid.Row="0" x:Name="lblStatus" Content="Status: Waiting..." VerticalAlignment="Top"/>
+        <Button Grid.Row="0" Width="100" Height="25"
+                Content="Save preset"
+                Click="ButtonBase_OnClick"
+                HorizontalAlignment="Left" VerticalAlignment="Center"
+                Margin="5"></Button>
+        <ComboBox Name="PresetComboBox" Grid.Row="1" Width="150" DisplayMemberPath="Name"
+                  Height="25"
+                  VerticalAlignment="Top" HorizontalAlignment="Left"
+                  Margin="5" SelectionChanged="PresetComboBox_OnSelectionChanged"></ComboBox>
+        <TextBox Name="IntensiveTB" TextChanged="IntensiveTB_OnTextChanged"
+                 Grid.Row="1" Width="50" Text="1,0" Margin="80,5,0,0"
+                 HorizontalAlignment="Left" VerticalAlignment="Center"
+                 PreviewTextInput="IntensiveTB_PreviewTextInput"
+                 DataObject.Pasting="TextBoxPastingEventHandler"
+                 LostFocus="IntensiveTB_LostFocus"></TextBox>
+        <Label Grid.Row="1" Content="Intensity:" HorizontalAlignment="Left" VerticalAlignment="Center"
+        />
+        <Label Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center"
+               Margin="0 5 0 0"
+               Content="Example: 0,625"></Label>
+        <CheckBox Grid.Row="2" x:Name="chkBothButtons" Content="Require Both Mouse Buttons"/>
+        <CheckBox Grid.Row="2" Margin="0 20 0 0"
+                  x:Name="chkMethod" Content="Use WinAPI method for mouse manipulation"/>
+    </Grid>
+</Window>
