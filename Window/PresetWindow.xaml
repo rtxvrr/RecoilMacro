@@ -4,15 +4,19 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:RecoilMacro.Window"
+        xmlns:converter="clr-namespace:RecoilMacro.Helpers"
         mc:Ignorable="d"
         Title="Enter Preset Name" Height="150" Width="300"
         WindowStartupLocation="CenterScreen" ResizeMode="NoResize">
+    <Window.Resources>
+        <converter:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+    </Window.Resources>
     <StackPanel Margin="10">
         <Label Content="{Binding Path=Title}"/>
-        <TextBox x:Name="inputTextBox"/>
+        <TextBox x:Name="inputTextBox" Loaded="TextBox_Loaded"/>
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="10">
-            <Button Name="SaveButton" Content="Save" Click="SaveButton_Click"/>
-            <Button Name="SaveChangesButton" Content="Save Changes" Click="SaveChangesButton_Click" Visibility="Collapsed"/>
+            <Button Content="Save" Visibility="{Binding IsUpdate, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter='Invert'}" Click="SaveButton_Click"/>
+            <Button Content="Save Changes" Visibility="{Binding IsUpdate, Converter={StaticResource BooleanToVisibilityConverter}}" Click="SaveButton_Click"/>
             <Button Content="Cancel" Click="CancelButton_Click" Margin="5,0,0,0"/>
         </StackPanel>
     </StackPanel>

@@ -3,8 +3,20 @@
   "WorkspaceRootPath": "C:\\Users\\PC\\AkaraWPF\\RecoilMacro\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{2B9A76E2-50F8-479D-942F-724E5205622A}|RecoilMacro.csproj|c:\\users\\pc\\akarawpf\\recoilmacro\\recoilmacro.csproj||{04B8AB82-A572-4FEF-95CE-5222444B6B64}|",
-      "RelativeMoniker": "D:0:0:{2B9A76E2-50F8-479D-942F-724E5205622A}|RecoilMacro.csproj|solutionrelative:recoilmacro.csproj||{04B8AB82-A572-4FEF-95CE-5222444B6B64}|"
+      "AbsoluteMoniker": "D:0:0:{2B9A76E2-50F8-479D-942F-724E5205622A}|RecoilMacro.csproj|c:\\users\\pc\\akarawpf\\recoilmacro\\window\\mainwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2B9A76E2-50F8-479D-942F-724E5205622A}|RecoilMacro.csproj|solutionrelative:window\\mainwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2B9A76E2-50F8-479D-942F-724E5205622A}|RecoilMacro.csproj|c:\\users\\pc\\akarawpf\\recoilmacro\\window\\mainwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
+      "RelativeMoniker": "D:0:0:{2B9A76E2-50F8-479D-942F-724E5205622A}|RecoilMacro.csproj|solutionrelative:window\\mainwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2B9A76E2-50F8-479D-942F-724E5205622A}|RecoilMacro.csproj|c:\\users\\pc\\akarawpf\\recoilmacro\\model\\preset.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2B9A76E2-50F8-479D-942F-724E5205622A}|RecoilMacro.csproj|solutionrelative:model\\preset.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2B9A76E2-50F8-479D-942F-724E5205622A}|RecoilMacro.csproj|c:\\users\\pc\\akarawpf\\recoilmacro\\window\\presetwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
+      "RelativeMoniker": "D:0:0:{2B9A76E2-50F8-479D-942F-724E5205622A}|RecoilMacro.csproj|solutionrelative:window\\presetwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
     }
   ],
   "DocumentGroupContainers": [
@@ -14,18 +26,56 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 0,
+          "SelectedChildIndex": 3,
           "Children": [
             {
               "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "PresetWindow.xaml",
+              "DocumentMoniker": "C:\\Users\\PC\\AkaraWPF\\RecoilMacro\\Window\\PresetWindow.xaml",
+              "RelativeDocumentMoniker": "Window\\PresetWindow.xaml",
+              "ToolTip": "C:\\Users\\PC\\AkaraWPF\\RecoilMacro\\Window\\PresetWindow.xaml",
+              "RelativeToolTip": "Window\\PresetWindow.xaml",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
+              "WhenOpened": "2024-05-03T23:49:19.116Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "Preset.cs",
+              "DocumentMoniker": "C:\\Users\\PC\\AkaraWPF\\RecoilMacro\\Model\\Preset.cs",
+              "RelativeDocumentMoniker": "Model\\Preset.cs",
+              "ToolTip": "C:\\Users\\PC\\AkaraWPF\\RecoilMacro\\Model\\Preset.cs",
+              "RelativeToolTip": "Model\\Preset.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAABAAAAAPAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-05-03T23:44:41.604Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "MainWindow.xaml",
+              "DocumentMoniker": "C:\\Users\\PC\\AkaraWPF\\RecoilMacro\\Window\\MainWindow.xaml",
+              "RelativeDocumentMoniker": "Window\\MainWindow.xaml",
+              "ToolTip": "C:\\Users\\PC\\AkaraWPF\\RecoilMacro\\Window\\MainWindow.xaml",
+              "RelativeToolTip": "Window\\MainWindow.xaml",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
+              "WhenOpened": "2024-05-03T23:16:05.7Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
               "DocumentIndex": 0,
-              "Title": "RecoilMacro",
-              "DocumentMoniker": "C:\\Users\\PC\\AkaraWPF\\RecoilMacro\\RecoilMacro.csproj",
-              "RelativeDocumentMoniker": "RecoilMacro.csproj",
-              "ToolTip": "C:\\Users\\PC\\AkaraWPF\\RecoilMacro\\RecoilMacro.csproj",
-              "RelativeToolTip": "RecoilMacro.csproj",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
-              "WhenOpened": "2024-05-02T08:21:01.34Z",
+              "Title": "MainWindow.xaml.cs",
+              "DocumentMoniker": "C:\\Users\\PC\\AkaraWPF\\RecoilMacro\\Window\\MainWindow.xaml.cs",
+              "RelativeDocumentMoniker": "Window\\MainWindow.xaml.cs",
+              "ToolTip": "C:\\Users\\PC\\AkaraWPF\\RecoilMacro\\Window\\MainWindow.xaml.cs",
+              "RelativeToolTip": "Window\\MainWindow.xaml.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAABQAAAArAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-05-03T13:43:54.293Z",
               "EditorCaption": ""
             }
           ]

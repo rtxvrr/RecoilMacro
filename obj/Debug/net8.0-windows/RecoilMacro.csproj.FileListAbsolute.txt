@@ -35,3 +35,4 @@ C:\Users\PC\AkaraWPF\RecoilMacro\obj\Debug\net8.0-windows\ref\RecoilMacro.dll
 C:\Users\PC\AkaraWPF\RecoilMacro\obj\Debug\net8.0-windows\RecoilMacro.sourcelink.json
 C:\Users\PC\AkaraWPF\RecoilMacro\bin\Debug\net8.0-windows\RecoilMacro.dll.config
 C:\Users\PC\AkaraWPF\RecoilMacro\obj\Debug\net8.0-windows\RecoilMacro_Content.g.cs
+C:\Users\PC\AkaraWPF\RecoilMacro\obj\Debug\net8.0-windows\GeneratedInternalTypeHelper.g.cs

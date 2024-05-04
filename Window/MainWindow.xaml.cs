@@ -1,10 +1,6 @@
 ﻿using Gma.System.MouseKeyHook;
-using NAudio.Wave;
-using Newtonsoft.Json;
-using RecoilMacro.Model;
+using RecoilMacro.Helpers;
 using RecoilMacro.Window;
-using System.Diagnostics;
-using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
@@ -12,22 +8,51 @@ using System.Windows.Forms;
 using System.Windows.Input;
 using WindowsInput;
 using Application = System.Windows.Application;
+using MessageBox = System.Windows.MessageBox;
+using Preset = RecoilMacro.Model.Preset;
 
 namespace RecoilMacro
 {
     public partial class MainWindow : System.Windows.Window
     {
         #region Variubles
-        private IKeyboardMouseEvents m_GlobalHook;
-        private bool isPulling = false;
-        private bool macroEnabled = false;
-        private List<Preset> presets;
-        private double pullIntensity;
-        private bool leftMouseButtonDown = false;
-        private bool rightMouseButtonDown = false;
-        private WaveOutEvent outputDevice;
-        private AudioFileReader audioFileOn;
-        private AudioFileReader audioFileOff;
+        private IKeyboardMouseEvents? _mGlobalHook;
+        private bool _isPulling = false;
+        private bool _macroEnabled = false;
+        private List<Preset> _presets;
+        private double _pullIntensity;
+        private bool _leftMouseButtonDown = false;
+        private bool _rightMouseButtonDown = false;
+        private readonly AudioService _audioService;
+        private readonly Random _random = new();
+        private readonly PresetManager _presetManager;
+        private bool ShouldStartPullMouse => MacroEnabled && IsTriggerConditionMet();
+        private const int MinMouseMoveDelay = 10;
+        private const int MouseMoveRandomFactor = 0;
+        private const int MinMouseMoveIntensity = 7;
+        private const int MaxMouseMoveIntensity = 15;
+
+        public bool MacroEnabled
+        {
+            get => _macroEnabled;
+            set
+            {
+                _macroEnabled = value;
+                _audioService.PlaySound(_macroEnabled);
+
+            }
+        }
+
+        public double PullIntensity
+        {
+            get => _pullIntensity;
+            set
+            {
+                if (value < 0)
+                    throw new ArgumentOutOfRangeException(nameof(value), "Intensity must be > 0");
+                _pullIntensity = value;
+            }
+        }
         #endregion
 
         #region Window Initialization 
@@ -36,18 +61,30 @@ namespace RecoilMacro
             InitializeComponent();
             UpdateIntensityFromTextbox();
             Subscribe();
+            try
+            {
+                _audioService = new AudioService();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error initialize audio system: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            _presetManager = new PresetManager();
             Loaded += Window_Loaded;
-            InitializeAudio();
         }
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            presets = LoadPresets();
-            foreach (var preset in presets)
+            if (_audioService == null)
+            {
+                this.Close();
+            }
+            _presets = _presetManager.GetPresets();
+            PresetComboBox.Items.Add(new Preset { Name = "Default", Intensity = 1.0, BothButtonsRequired = false });
+            foreach (var preset in _presets)
             {
                 PresetComboBox.Items.Add(preset);
             }
-            PresetComboBox.Items.Add(new Preset { Name = "Default", Intensity = 1.0, BothButtonsRequired = false });
-            PresetComboBox.SelectedIndex = presets.Count; // Select "Default"
+            PresetComboBox.SelectedIndex = 0; // Select "Default"
         }
 
         #endregion
@@ -62,44 +99,19 @@ namespace RecoilMacro
 
         private void Unsubscribe()
         {
-            m_GlobalHook.MouseDownExt -= GlobalHookMouseDownExt;
-            m_GlobalHook.MouseUpExt -= GlobalHookMouseUpExt;
-            m_GlobalHook.KeyDown -= GlobalHookKeyDown;
-            m_GlobalHook.Dispose();
+            _mGlobalHook.MouseDownExt -= GlobalHookMouseDownExt;
+            _mGlobalHook.MouseUpExt -= GlobalHookMouseUpExt;
+            _mGlobalHook.KeyDown -= GlobalHookKeyDown;
+            _mGlobalHook.Dispose();
         }
         private void Subscribe()
         {
-            m_GlobalHook = Hook.GlobalEvents();
-            m_GlobalHook.MouseDownExt += GlobalHookMouseDownExt;
-            m_GlobalHook.MouseUpExt += GlobalHookMouseUpExt;
-            m_GlobalHook.KeyDown += GlobalHookKeyDown;
+            _mGlobalHook = Hook.GlobalEvents();
+            _mGlobalHook.MouseDownExt += GlobalHookMouseDownExt;
+            _mGlobalHook.MouseUpExt += GlobalHookMouseUpExt;
+            _mGlobalHook.KeyDown += GlobalHookKeyDown;
         }
 
-        #endregion
-
-        #region Sounds
-        private void InitializeAudio()
-        {
-            try
-            {
-                outputDevice = new WaveOutEvent();
-                audioFileOn = new AudioFileReader("Source/on.wav");
-                audioFileOff = new AudioFileReader("Source/off.wav");
-            }
-            catch (Exception e)
-            {
-                Debug.Print(Convert.ToString(e));
-                throw;
-            }
-        }
-        private void PlaySound(AudioFileReader audioFile)
-        {
-            if (outputDevice.PlaybackState == PlaybackState.Playing)
-                outputDevice.Stop();
-            outputDevice.Init(audioFile);
-            audioFile.Position = 0;
-            outputDevice.Play();
-        }
         #endregion
 
         #region GlobalHooks
@@ -110,19 +122,19 @@ namespace RecoilMacro
             {
                 Dispatcher.Invoke(() =>
                 {
-                    macroEnabled = !macroEnabled;
-                    PlaySound(macroEnabled ? audioFileOn : audioFileOff);
+                    MacroEnabled = !MacroEnabled;
+                    _audioService.PlaySound(MacroEnabled);
                 });
             }
         }
         private void GlobalHookMouseDownExt(object sender, MouseEventExtArgs e)
         {
             if (e.Button == MouseButtons.Left)
-                leftMouseButtonDown = true;
+                _leftMouseButtonDown = true;
             else if (e.Button == MouseButtons.Right)
-                rightMouseButtonDown = true;
+                _rightMouseButtonDown = true;
 
-            if (macroEnabled && IsTriggerConditionMet())
+            if (ShouldStartPullMouse)
             {
                 Dispatcher.Invoke(() => lblStatus.Content = "Status: Active");
                 StartPullMouse();
@@ -131,11 +143,11 @@ namespace RecoilMacro
         private void GlobalHookMouseUpExt(object sender, MouseEventExtArgs e)
         {
             if (e.Button == MouseButtons.Left)
-                leftMouseButtonDown = false;
+                _leftMouseButtonDown = false;
             else if (e.Button == MouseButtons.Right)
-                rightMouseButtonDown = false;
+                _rightMouseButtonDown = false;
 
-            if (macroEnabled && (leftMouseButtonDown == false || rightMouseButtonDown == false))
+            if (_macroEnabled && (_leftMouseButtonDown == false || _rightMouseButtonDown == false))
             {
                 Dispatcher.Invoke(() => lblStatus.Content = "Status: Inactive");
                 StopPullMouse();
@@ -148,60 +160,62 @@ namespace RecoilMacro
         {
             if (chkBothButtons.IsChecked == true)
             {
-                return leftMouseButtonDown && rightMouseButtonDown;
+                return _leftMouseButtonDown && _rightMouseButtonDown;
             }
-            return leftMouseButtonDown;
+            return _leftMouseButtonDown;
         }
 
         private void StartPullMouse()
         {
-
-            #region WinAPI
-            if (chkMethod.IsChecked == true)
+            try
             {
-                if (!isPulling)
+                #region WinAPI
+                if (chkMethod.IsChecked == true)
                 {
-                    isPulling = true;
-                    Task.Run(async () =>
+                    if (!_isPulling)
                     {
-                        Random random = new Random();
-                        while (isPulling)
+                        _isPulling = true;
+                        Task.Run(async () =>
                         {
-                            int randomX = 0;
-                            int randomY = random.Next(7, 15);
-                            MoveMouse(randomX, (int)(pullIntensity * randomY));
-                            await Task.Delay(10 + random.Next(-4, 3));
-                        }
-                    });
+                            while (_isPulling)
+                            {
+                                int randomY = _random.Next(MinMouseMoveIntensity, MaxMouseMoveIntensity);
+                                MoveMouse(MouseMoveRandomFactor, (int)(PullIntensity * randomY));
+                                await Task.Delay(MinMouseMoveDelay + _random.Next(-4, 3));
+                            }
+                        });
+                    }
                 }
+                #endregion
+                #region InputSimulator
+                else
+                {
+                    if (!_isPulling)
+                    {
+                        _isPulling = true;
+                        var inputSimulator = new InputSimulator();
+                        Task.Run(async () =>
+                        {
+                            while (_isPulling)
+                            {
+                                int randomY = _random.Next(MinMouseMoveIntensity, MaxMouseMoveIntensity);
+                                inputSimulator.Mouse.MoveMouseBy(MouseMoveRandomFactor, (int)(PullIntensity * randomY));
+                                await Task.Delay(MinMouseMoveDelay + _random.Next(-4, 3));
+                            }
+                        });
+                    }
+                }
+                #endregion
             }
-            #endregion
 
-            #region InputSimulator
-            else
+            catch (Exception ex)
             {
-                if (!isPulling)
-                {
-                    isPulling = true;
-                    var inputSimulator = new InputSimulator();
-                    Task.Run(async () =>
-                    {
-                        Random random = new Random();
-                        while (isPulling)
-                        {
-                            int randomY = random.Next(7, 15);
-                            inputSimulator.Mouse.MoveMouseBy(0, (int)(pullIntensity * randomY));
-                            await Task.Delay(10 + random.Next(-4, 3));
-                        }
-                    });
-                }
+                MessageBox.Show("Error starting pulling mouse: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
-            #endregion
-
         }
         private void StopPullMouse()
         {
-            isPulling = false;
+            _isPulling = false;
         }
 
         #endregion
@@ -214,9 +228,17 @@ namespace RecoilMacro
         }
         private void IntensiveTB_PreviewTextInput(object sender, TextCompositionEventArgs e)
         {
-            var textBox = sender as System.Windows.Controls.TextBox;
-            var fullText = textBox.Text.Insert(textBox.CaretIndex, e.Text);
-            e.Handled = !IsValidDecimalInput(fullText);
+            try
+            {
+                var textBox = sender as System.Windows.Controls.TextBox;
+                var fullText = textBox.Text.Insert(textBox.CaretIndex, e.Text);
+                e.Handled = !IsValidDecimalInput(fullText);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error input intensive number: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                e.Handled = true;
+            }
         }
         private void IntensiveTB_LostFocus(object sender, RoutedEventArgs e)
         {
@@ -240,7 +262,7 @@ namespace RecoilMacro
         {
             if (double.TryParse(IntensiveTB.Text, out double value))
             {
-                pullIntensity = value;
+                PullIntensity = value;
             }
         }
         private void TextBoxPastingEventHandler(object sender, DataObjectPastingEventArgs e)
@@ -266,35 +288,18 @@ namespace RecoilMacro
         {
             if (PresetComboBox.SelectedItem is Preset selectedPreset)
             {
-                pullIntensity = selectedPreset.Intensity;
-                IntensiveTB.Text = pullIntensity.ToString();
+                PullIntensity = selectedPreset.Intensity;
+                IntensiveTB.Text = PullIntensity.ToString();
                 chkBothButtons.IsChecked = selectedPreset.BothButtonsRequired;
                 chkMethod.IsChecked = selectedPreset.WinApiMethod;
             }
         }
 
-        public void SavePresets(List<Preset> presets)
-        {
-            string filePath = "presets.json";
-            string json = JsonConvert.SerializeObject(presets, Newtonsoft.Json.Formatting.Indented);
-            File.WriteAllText(filePath, json);
-        }
-
-        public List<Preset> LoadPresets()
-        {
-            string filePath = "presets.json";
-            if (File.Exists(filePath))
-            {
-                string json = File.ReadAllText(filePath);
-                return JsonConvert.DeserializeObject<List<Preset>>(json) ?? new List<Preset>();
-            }
-            return new List<Preset>();
-        }
         private void ButtonBase_OnClick(object sender, RoutedEventArgs e)
         {
             var currentPreset = PresetComboBox.SelectedItem as Preset;
-            bool isUpdate = currentPreset != null && presets.Any(p => p.Name == currentPreset.Name);
-            string defaultName = isUpdate ? currentPreset.Name : "New Preset " + (presets.Count + 1);
+            bool isUpdate = currentPreset != null && _presets.Any(p => p.Name == currentPreset.Name);
+            string defaultName = isUpdate ? currentPreset.Name : "New Preset " + (_presets.Count + 1);
             var inputDialog = new PresetWindow("Enter preset name:", defaultName, isUpdate);
 
             if (inputDialog.ShowDialog() == true)
@@ -304,19 +309,19 @@ namespace RecoilMacro
                 if (isUpdate)
                 {
                     currentPreset.Name = presetName;
-                    currentPreset.Intensity = pullIntensity;
+                    currentPreset.Intensity = PullIntensity;
                     currentPreset.BothButtonsRequired = (bool)chkBothButtons.IsChecked;
                     currentPreset.WinApiMethod = (bool)chkMethod.IsChecked;
                 }
                 else
                 {
-                    var newPreset = new Preset { Name = presetName, Intensity = pullIntensity, BothButtonsRequired = (bool)chkBothButtons.IsChecked, WinApiMethod = (bool)chkMethod.IsChecked };
-                    presets.Add(newPreset);
+                    var newPreset = new Preset { Name = presetName, Intensity = PullIntensity, BothButtonsRequired = (bool)chkBothButtons.IsChecked, WinApiMethod = (bool)chkMethod.IsChecked };
+                    _presets.Add(newPreset);
                     PresetComboBox.Items.Add(newPreset);
                 }
 
-                SavePresets(presets);
-                PresetComboBox.SelectedItem = isUpdate ? currentPreset : presets.Last();
+                _presetManager.SavePresets();
+                PresetComboBox.SelectedItem = isUpdate ? currentPreset : _presets.Last();
             }
 
         }

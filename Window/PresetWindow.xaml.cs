@@ -1,4 +1,5 @@
 ﻿using System.Windows;
+using System.Windows.Controls;
 
 namespace RecoilMacro.Window
 {
@@ -15,18 +16,21 @@ namespace RecoilMacro.Window
             inputTextBox.SelectAll();
             inputTextBox.Focus();
             IsUpdate = isUpdate;
-            SaveChangesButton.Visibility = isUpdate ? Visibility.Visible : Visibility.Collapsed;
-            SaveButton.Visibility = !isUpdate ? Visibility.Visible : Visibility.Collapsed;
+            DataContext = this;
         }
-
+        private void TextBox_Loaded(object sender, RoutedEventArgs e)
+        {
+            var textBox = sender as TextBox;
+            textBox.Focus();
+            textBox.SelectAll();
+        }
         private void SaveButton_Click(object sender, RoutedEventArgs e)
         {
-            Answer = inputTextBox.Text;
-            this.DialogResult = true;
-        }
-
-        private void SaveChangesButton_Click(object sender, RoutedEventArgs e)
-        {
+            if (string.IsNullOrWhiteSpace(inputTextBox.Text))
+            {
+                MessageBox.Show("Please enter a valid name.");
+                return;
+            }
             Answer = inputTextBox.Text;
             this.DialogResult = true;
         }
