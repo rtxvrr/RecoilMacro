@@ -5,13 +5,13 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:RecoilMacro"
         mc:Ignorable="d"
-        Title="123" Height="250" Width="350" ResizeMode="NoResize"
+        Title="123" Height="280" Width="350" ResizeMode="NoResize"
         WindowStartupLocation="CenterScreen">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition></RowDefinition>
             <RowDefinition></RowDefinition>
-            <RowDefinition></RowDefinition>
+            <RowDefinition Height="0.7*"></RowDefinition>
         </Grid.RowDefinitions>
         <Label Grid.Row="0" x:Name="lblStatus" Content="Status: Waiting..." VerticalAlignment="Top"/>
         <Button Grid.Row="0" Width="100" Height="25"
@@ -23,19 +23,51 @@
                   Height="25"
                   VerticalAlignment="Top" HorizontalAlignment="Left"
                   Margin="5 0 0 0" SelectionChanged="PresetComboBox_OnSelectionChanged"></ComboBox>
-        <TextBox Name="IntensiveTB" TextChanged="IntensiveTB_OnTextChanged"
-                 Grid.Row="1" Width="50" Text="1,0" Margin="80,5,0,0"
-                 HorizontalAlignment="Left" VerticalAlignment="Center"
-                 PreviewTextInput="IntensiveTB_PreviewTextInput"
-                 DataObject.Pasting="TextBoxPastingEventHandler"
-                 LostFocus="IntensiveTB_LostFocus"></TextBox>
-        <Label Grid.Row="1" Content="Intensity:" HorizontalAlignment="Left" 
-               VerticalAlignment="Center"/>
-        <Label Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center"
-               Margin="10 5 0 0"
-               Content="Example: 0,625"/>
+        <StackPanel Grid.Row="1" VerticalAlignment="Center" Orientation="Horizontal">
+
+            <Label Grid.Row="1" Content="Intensity:" HorizontalAlignment="Left" 
+                   VerticalAlignment="Center"/>
+            <TextBox Name="IntensiveTB" TextChanged="IntensiveTB_OnTextChanged"
+                     Grid.Row="1" Width="50" Height="20" Text="1,0"
+                     HorizontalAlignment="Center"
+                     Margin="0 0 0 0"
+                     PreviewTextInput="IntensiveTB_PreviewTextInput"
+                     DataObject.Pasting="TextBoxPastingEventHandler"
+                     HorizontalContentAlignment="Center"
+                     VerticalContentAlignment="Center"
+                     LostFocus="IntensiveTB_LostFocus"></TextBox>
+            <Label Grid.Row="1"
+                   HorizontalAlignment="Center"
+                   Content="Example: 0,625"/>
+        </StackPanel>
+
+        <StackPanel Grid.Row="1" VerticalAlignment="Bottom" Orientation="Horizontal">
+            <Label Content="Incremental Step:" Grid.Row="1" Margin="0 0 0 0"/>
+            <TextBox Name="IncrementalStepTB" Text="0,1" Grid.Row="1" Width="50" Height="20"
+                     PreviewTextInput="IncrementalStepTB_PreviewTextInput"
+                     TextChanged="IncrementalStepTB_OnTextChanged"
+                     HorizontalContentAlignment="Center"
+                     VerticalContentAlignment="Center"
+                     DataObject.Pasting="TextBoxPastingEventHandler"
+                     LostFocus="IncrementalStepTB_LostFocus"/>
+        </StackPanel>
+
         <CheckBox Grid.Row="2" x:Name="chkBothButtons" Content="Require Both Mouse Buttons"/>
+
         <CheckBox Grid.Row="2" Margin="0 20 0 0"
-                  x:Name="chkMethod" Content="Use WinAPI method for mouse manipulation"/>
+                  x:Name="chkMethod" Content="Use Virtual Driver for mouse manipulation(Run as Admin)"/>
+        <CheckBox Grid.Row="2" x:Name="chkSound" Content="Disable sounds ON\OFF"
+                  Margin="0 40 0 0"/>
+        <Button Grid.Row="0" Width="100" Height="25"
+                Content="Load DLL"
+                Name="btnLoadDLL"
+                Click="buttonLoadDll_Click"
+                HorizontalAlignment="Right" VerticalAlignment="Center"
+                Margin="5"></Button>
+        <Label Grid.Row="0" HorizontalAlignment="Right" VerticalAlignment="Top"
+               Margin="0 10 0 0"
+               Name="labelLoadedDLL"
+               Content="DLL not loaded"
+               Foreground="Red"></Label>
     </Grid>
 </Window>

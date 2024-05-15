@@ -4,7 +4,6 @@ C:\Users\PC\AkaraWPF\RecoilMacro\bin\Release\net8.0-windows\win-x86\RecoilMacro.
 C:\Users\PC\AkaraWPF\RecoilMacro\bin\Release\net8.0-windows\win-x86\RecoilMacro.runtimeconfig.json
 C:\Users\PC\AkaraWPF\RecoilMacro\bin\Release\net8.0-windows\win-x86\RecoilMacro.dll
 C:\Users\PC\AkaraWPF\RecoilMacro\bin\Release\net8.0-windows\win-x86\RecoilMacro.pdb
-C:\Users\PC\AkaraWPF\RecoilMacro\bin\Release\net8.0-windows\win-x86\WindowsInput.dll
 C:\Users\PC\AkaraWPF\RecoilMacro\bin\Release\net8.0-windows\win-x86\Gma.System.MouseKeyHook.dll
 C:\Users\PC\AkaraWPF\RecoilMacro\bin\Release\net8.0-windows\win-x86\NAudio.dll
 C:\Users\PC\AkaraWPF\RecoilMacro\bin\Release\net8.0-windows\win-x86\NAudio.Asio.dll
@@ -494,3 +493,4 @@ C:\Users\PC\AkaraWPF\RecoilMacro\obj\Release\net8.0-windows\win-x86\RecoilMacro.
 C:\Users\PC\AkaraWPF\RecoilMacro\obj\Release\net8.0-windows\win-x86\RecoilMacro.genruntimeconfig.cache
 C:\Users\PC\AkaraWPF\RecoilMacro\obj\Release\net8.0-windows\win-x86\ref\RecoilMacro.dll
 C:\Users\PC\AkaraWPF\RecoilMacro\obj\Release\net8.0-windows\win-x86\RecoilMacro_Content.g.cs
+C:\Users\PC\AkaraWPF\RecoilMacro\obj\Release\net8.0-windows\win-x86\GeneratedInternalTypeHelper.g.cs

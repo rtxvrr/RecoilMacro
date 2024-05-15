@@ -34,7 +34,8 @@ namespace RecoilMacro.Model
         }
 
         public bool BothButtonsRequired { get; set; }
-        public bool WinApiMethod { get; set; }
+        public bool VirtualDriverMethod { get; set; }
+        public double IncrementalStep { get; set; }
     }
 
 }

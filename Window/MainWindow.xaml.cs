@@ -1,21 +1,23 @@
 ﻿using Gma.System.MouseKeyHook;
 using RecoilMacro.Helpers;
 using RecoilMacro.Window;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Forms;
 using System.Windows.Input;
-using WindowsInput;
+using System.Windows.Media;
 using Application = System.Windows.Application;
 using MessageBox = System.Windows.MessageBox;
 using Preset = RecoilMacro.Model.Preset;
+using OpenFileDialog = Microsoft.Win32.OpenFileDialog;
 
 namespace RecoilMacro
 {
     public partial class MainWindow : System.Windows.Window
     {
-        #region Variubles
+        #region Variables
         private IKeyboardMouseEvents? _mGlobalHook;
         private bool _isPulling = false;
         private bool _macroEnabled = false;
@@ -31,6 +33,11 @@ namespace RecoilMacro
         private const int MouseMoveRandomFactor = 0;
         private const int MinMouseMoveIntensity = 7;
         private const int MaxMouseMoveIntensity = 15;
+        private double _currentIntensity;
+        private double _incrementalStep;
+        private bool _isWindowHidden = false;
+        private bool _loadedDLL = false;
+        private CDD dd;
 
         public bool MacroEnabled
         {
@@ -38,11 +45,22 @@ namespace RecoilMacro
             set
             {
                 _macroEnabled = value;
-                _audioService.PlaySound(_macroEnabled);
-
+                if (!chkSound.IsChecked == true)
+                {
+                    _audioService.PlaySound(MacroEnabled);
+                }
             }
         }
-
+        public double IncrementalStep
+        {
+            get => _incrementalStep;
+            set
+            {
+                if (value < 0)
+                    throw new ArgumentOutOfRangeException(nameof(value), "Incremental Step must be > 0");
+                _incrementalStep = value;
+            }
+        }
         public double PullIntensity
         {
             get => _pullIntensity;
@@ -79,12 +97,12 @@ namespace RecoilMacro
                 this.Close();
             }
             _presets = _presetManager.GetPresets();
-            PresetComboBox.Items.Add(new Preset { Name = "Default", Intensity = 1.0, BothButtonsRequired = false });
+            PresetComboBox.Items.Add(new Preset { Name = "Default", Intensity = 1.0, IncrementalStep = 0.1, VirtualDriverMethod = false, BothButtonsRequired = false });
             foreach (var preset in _presets)
             {
                 PresetComboBox.Items.Add(preset);
             }
-            PresetComboBox.SelectedIndex = 0; // Select "Default"
+            PresetComboBox.SelectedIndex = 0;
         }
 
         #endregion
@@ -123,10 +141,21 @@ namespace RecoilMacro
                 Dispatcher.Invoke(() =>
                 {
                     MacroEnabled = !MacroEnabled;
-                    _audioService.PlaySound(MacroEnabled);
+                    if (!chkSound.IsChecked == true)
+                    {
+                        _audioService.PlaySound(MacroEnabled);
+                    }
+                });
+            }
+            if (e.KeyCode == Keys.F6)
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    ToggleWindowVisibility();
                 });
             }
         }
+
         private void GlobalHookMouseDownExt(object sender, MouseEventExtArgs e)
         {
             if (e.Button == MouseButtons.Left)
@@ -169,8 +198,12 @@ namespace RecoilMacro
         {
             try
             {
+                _currentIntensity = _pullIntensity;
+                Stopwatch stopwatch = new Stopwatch();
+                stopwatch.Start();
+
                 #region WinAPI
-                if (chkMethod.IsChecked == true)
+                if (chkMethod.IsChecked == false)
                 {
                     if (!_isPulling)
                     {
@@ -179,35 +212,46 @@ namespace RecoilMacro
                         {
                             while (_isPulling)
                             {
+                                long elapsedMilliseconds = stopwatch.ElapsedMilliseconds;
+                                _currentIntensity = _pullIntensity + (_incrementalStep * elapsedMilliseconds / 1000);
                                 int randomY = _random.Next(MinMouseMoveIntensity, MaxMouseMoveIntensity);
-                                MoveMouse(MouseMoveRandomFactor, (int)(PullIntensity * randomY));
+                                MoveMouse(MouseMoveRandomFactor, (int)(_currentIntensity * randomY));
                                 await Task.Delay(MinMouseMoveDelay + _random.Next(-4, 3));
                             }
+                            stopwatch.Stop();
                         });
                     }
                 }
                 #endregion
-                #region InputSimulator
-                else
+
+                #region VirtualMouse
+                else if (chkMethod.IsChecked == true)
                 {
+                    if (_loadedDLL == false)
+                    {
+                        MessageBox.Show("DLL for virtual driver not loaded! \nPlease read README.txt", "DLL not loaded", MessageBoxButton.OK, MessageBoxImage.Error);
+                        chkMethod.IsChecked = false;
+                        return;
+                    }
                     if (!_isPulling)
                     {
                         _isPulling = true;
-                        var inputSimulator = new InputSimulator();
                         Task.Run(async () =>
                         {
                             while (_isPulling)
                             {
+                                long elapsedMilliseconds = stopwatch.ElapsedMilliseconds;
+                                _currentIntensity = _pullIntensity + (_incrementalStep * elapsedMilliseconds / 1000);
                                 int randomY = _random.Next(MinMouseMoveIntensity, MaxMouseMoveIntensity);
-                                inputSimulator.Mouse.MoveMouseBy(MouseMoveRandomFactor, (int)(PullIntensity * randomY));
+                                dd.movR(MouseMoveRandomFactor, (int)(_currentIntensity * randomY));
                                 await Task.Delay(MinMouseMoveDelay + _random.Next(-4, 3));
                             }
+                            stopwatch.Stop();
                         });
                     }
                 }
                 #endregion
             }
-
             catch (Exception ex)
             {
                 MessageBox.Show("Error starting pulling mouse: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
@@ -226,6 +270,10 @@ namespace RecoilMacro
         {
             UpdateIntensityFromTextbox();
         }
+        private void IncrementalStepTB_OnTextChanged(object sender, TextChangedEventArgs e)
+        {
+            UpdateIncrementalFromTextbox();
+        }
         private void IntensiveTB_PreviewTextInput(object sender, TextCompositionEventArgs e)
         {
             try
@@ -240,7 +288,32 @@ namespace RecoilMacro
                 e.Handled = true;
             }
         }
+        private void IncrementalStepTB_PreviewTextInput(object sender, TextCompositionEventArgs e)
+        {
+            try
+            {
+                var textBox = sender as System.Windows.Controls.TextBox;
+                var fullText = textBox.Text.Insert(textBox.CaretIndex, e.Text);
+                e.Handled = !IsValidDecimalInput(fullText);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error input Incremental number: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                e.Handled = true;
+            }
+        }
         private void IntensiveTB_LostFocus(object sender, RoutedEventArgs e)
+        {
+            var textBox = sender as System.Windows.Controls.TextBox;
+            if (decimal.TryParse(textBox.Text, out decimal number))
+            {
+                if (textBox.Text.IndexOf(System.Globalization.CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator) == -1)
+                {
+                    textBox.Text = $"{number}{System.Globalization.CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator}0";
+                }
+            }
+        }
+        private void IncrementalStepTB_LostFocus(object sender, RoutedEventArgs e)
         {
             var textBox = sender as System.Windows.Controls.TextBox;
             if (decimal.TryParse(textBox.Text, out decimal number))
@@ -263,6 +336,13 @@ namespace RecoilMacro
             if (double.TryParse(IntensiveTB.Text, out double value))
             {
                 PullIntensity = value;
+            }
+        }
+        private void UpdateIncrementalFromTextbox()
+        {
+            if (double.TryParse(IncrementalStepTB.Text, out double value))
+            {
+                IncrementalStep = value;
             }
         }
         private void TextBoxPastingEventHandler(object sender, DataObjectPastingEventArgs e)
@@ -290,8 +370,10 @@ namespace RecoilMacro
             {
                 PullIntensity = selectedPreset.Intensity;
                 IntensiveTB.Text = PullIntensity.ToString();
+                IncrementalStep = selectedPreset.IncrementalStep;
+                IncrementalStepTB.Text = IncrementalStep.ToString();
                 chkBothButtons.IsChecked = selectedPreset.BothButtonsRequired;
-                chkMethod.IsChecked = selectedPreset.WinApiMethod;
+                chkMethod.IsChecked = selectedPreset.VirtualDriverMethod;
             }
         }
 
@@ -308,14 +390,20 @@ namespace RecoilMacro
 
                 if (isUpdate)
                 {
+                    int index = PresetComboBox.SelectedIndex;
+                    PresetComboBox.Items.RemoveAt(index);
+
                     currentPreset.Name = presetName;
                     currentPreset.Intensity = PullIntensity;
                     currentPreset.BothButtonsRequired = (bool)chkBothButtons.IsChecked;
-                    currentPreset.WinApiMethod = (bool)chkMethod.IsChecked;
+                    currentPreset.VirtualDriverMethod = (bool)chkMethod.IsChecked;
+                    currentPreset.IncrementalStep = IncrementalStep;
+
+                    PresetComboBox.Items.Insert(index, currentPreset);
                 }
                 else
                 {
-                    var newPreset = new Preset { Name = presetName, Intensity = PullIntensity, BothButtonsRequired = (bool)chkBothButtons.IsChecked, WinApiMethod = (bool)chkMethod.IsChecked };
+                    var newPreset = new Preset { Name = presetName, Intensity = PullIntensity, BothButtonsRequired = (bool)chkBothButtons.IsChecked, VirtualDriverMethod = (bool)chkMethod.IsChecked, IncrementalStep = IncrementalStep };
                     _presets.Add(newPreset);
                     PresetComboBox.Items.Add(newPreset);
                 }
@@ -323,8 +411,8 @@ namespace RecoilMacro
                 _presetManager.SavePresets();
                 PresetComboBox.SelectedItem = isUpdate ? currentPreset : _presets.Last();
             }
-
         }
+
 
         #endregion
 
@@ -377,5 +465,61 @@ namespace RecoilMacro
             SendInput(1, inputs, INPUT.Size);
         }
         #endregion
+        private void ToggleWindowVisibility()
+        {
+            if (Application.Current.Windows.OfType<PresetWindow>().Any())
+            {
+                MessageBox.Show("Cannot hide the window while the preset selection window is open.");
+                return;
+            }
+
+            if (_isWindowHidden)
+            {
+                this.Show();
+            }
+            else
+            {
+                this.Hide();
+            }
+
+            _isWindowHidden = !_isWindowHidden;
+        }
+        private void buttonLoadDll_Click(object sender, RoutedEventArgs e)
+        {
+            OpenFileDialog ofd = new OpenFileDialog
+            {
+                Filter = "DD|*.DLL"
+            };
+
+            if (ofd.ShowDialog() != true)
+            {
+                return;
+            }
+
+            LoadDllFile(ofd.FileName);
+        }
+
+        private void LoadDllFile(string dllfile)
+        {
+            dd = new CDD();
+            int ret = dd.Load(dllfile);
+            if (ret != 1)
+            {
+                MessageBox.Show("Load Error");
+                return;
+            }
+
+            ret = dd.btn(0);
+            if (ret != 1)
+            {
+                MessageBox.Show("Initialize Error");
+                return;
+            }
+
+            labelLoadedDLL.Content = "DLL Loaded!";
+            labelLoadedDLL.Foreground = Brushes.Green;
+            btnLoadDLL.IsEnabled = false;
+            _loadedDLL = true;
+        }
     }
 }

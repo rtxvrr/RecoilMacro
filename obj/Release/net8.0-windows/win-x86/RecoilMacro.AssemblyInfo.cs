@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("RecoilMacro")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+1db0979b57dee193c4d1b4f527a809bff2339d3e")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+493d9325a444c7bce913375ae76bb352684bae28")]
 [assembly: System.Reflection.AssemblyProductAttribute("RecoilMacro")]
 [assembly: System.Reflection.AssemblyTitleAttribute("RecoilMacro")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

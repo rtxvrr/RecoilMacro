@@ -50,10 +50,6 @@
         "net8.0-windows7.0": {
           "targetAlias": "net8.0-windows",
           "dependencies": {
-            "InputSimulator": {
-              "target": "Package",
-              "version": "[1.0.4, )"
-            },
             "Microsoft.NET.ILLink.Tasks": {
               "suppressParent": "All",
               "target": "Package",

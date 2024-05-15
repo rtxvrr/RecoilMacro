@@ -50,10 +50,6 @@
         "net8.0-windows7.0": {
           "targetAlias": "net8.0-windows",
           "dependencies": {
-            "InputSimulator": {
-              "target": "Package",
-              "version": "[1.0.4, )"
-            },
             "MouseKeyHook": {
               "target": "Package",
               "version": "[5.7.1, )"

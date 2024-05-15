@@ -3,7 +3,6 @@ C:\Users\PC\AkaraWPF\RecoilMacro\bin\Debug\net8.0-windows\RecoilMacro.deps.json
 C:\Users\PC\AkaraWPF\RecoilMacro\bin\Debug\net8.0-windows\RecoilMacro.runtimeconfig.json
 C:\Users\PC\AkaraWPF\RecoilMacro\bin\Debug\net8.0-windows\RecoilMacro.dll
 C:\Users\PC\AkaraWPF\RecoilMacro\bin\Debug\net8.0-windows\RecoilMacro.pdb
-C:\Users\PC\AkaraWPF\RecoilMacro\bin\Debug\net8.0-windows\WindowsInput.dll
 C:\Users\PC\AkaraWPF\RecoilMacro\bin\Debug\net8.0-windows\Gma.System.MouseKeyHook.dll
 C:\Users\PC\AkaraWPF\RecoilMacro\bin\Debug\net8.0-windows\NAudio.dll
 C:\Users\PC\AkaraWPF\RecoilMacro\bin\Debug\net8.0-windows\NAudio.Asio.dll

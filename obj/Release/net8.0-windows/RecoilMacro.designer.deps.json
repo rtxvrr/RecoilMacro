@@ -6,14 +6,6 @@
   "compilationOptions": {},
   "targets": {
     ".NETCoreApp,Version=v8.0": {
-      "InputSimulator/1.0.4": {
-        "runtime": {
-          "lib/net20/WindowsInput.dll": {
-            "assemblyVersion": "1.0.4.0",
-            "fileVersion": "1.0.4.0"
-          }
-        }
-      },
       "Microsoft.NETCore.Platforms/3.1.0": {},
       "Microsoft.Win32.Registry/4.7.0": {
         "dependencies": {
@@ -183,13 +175,6 @@
     }
   },
   "libraries": {
-    "InputSimulator/1.0.4": {
-      "type": "package",
-      "serviceable": true,
-      "sha512": "sha512-D0LvRCPQMX6/FJHBjng+RO+wRDuHTJrfo7IAc7rmkPvRqchdVGJWg3y70peOtDy3OLNK+HSOwVkH4GiuLnkKgA==",
-      "path": "inputsimulator/1.0.4",
-      "hashPath": "inputsimulator.1.0.4.nupkg.sha512"
-    },
     "Microsoft.NETCore.Platforms/3.1.0": {
       "type": "package",
       "serviceable": true,
