@@ -1,8 +1,0 @@
-C:\Users\PC\Desktop\recoilMacro Releases\v0.2.0 win-x86\RecoilMacro.pdb
-C:\Users\PC\Desktop\recoilMacro Releases\v0.2.0 win-x86\RecoilMacro.dll.config
-C:\Users\PC\Desktop\recoilMacro Releases\v0.2.0 win-x86\D3DCompiler_47_cor3.dll
-C:\Users\PC\Desktop\recoilMacro Releases\v0.2.0 win-x86\PenImc_cor3.dll
-C:\Users\PC\Desktop\recoilMacro Releases\v0.2.0 win-x86\PresentationNative_cor3.dll
-C:\Users\PC\Desktop\recoilMacro Releases\v0.2.0 win-x86\vcruntime140_cor3.dll
-C:\Users\PC\Desktop\recoilMacro Releases\v0.2.0 win-x86\wpfgfx_cor3.dll
-C:\Users\PC\Desktop\recoilMacro Releases\v0.2.0 win-x86\RecoilMacro.exe
