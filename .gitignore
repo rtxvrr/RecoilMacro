@@ -195,3 +195,5 @@ mono_crash.*
 *.futdcache.*
 *.dtbcache.*
 DocumentLayout.json
+*.user
+*.csproj.user
