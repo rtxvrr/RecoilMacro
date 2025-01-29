@@ -14,7 +14,8 @@
 *.ipr
 workspace.xml
 *.sln.iml
-
+.vs/**/*
+!*.sln
 # VS Code
 .vscode/*
 !.vscode/settings.json
@@ -188,3 +189,9 @@ mono_crash.*
 *.vbp
 *.dsw
 *.dsp
+
+
+*.suo
+*.futdcache.*
+*.dtbcache.*
+DocumentLayout.json
