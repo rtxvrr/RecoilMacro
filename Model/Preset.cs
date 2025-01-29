@@ -1,41 +1,46 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace RecoilMacro.Model
+﻿namespace RecoilMacro.Model
 {
     public class Preset
     {
-        private string name;
-        private double intensity;
+        #region Private Fields
+
+        private string _name;
+        private double _intensity;
+
+        #endregion
+
+        #region Properties
 
         public string Name
         {
-            get => name;
+            get => _name;
             set
             {
                 if (string.IsNullOrWhiteSpace(value))
-                    throw new ArgumentException("Name cannot be null or whitespace.");
-                name = value;
+                {
+                    throw new System.ArgumentException("Name cannot be null or whitespace.");
+                }
+                _name = value;
             }
         }
 
         public double Intensity
         {
-            get => intensity;
+            get => _intensity;
             set
             {
                 if (value < 0)
-                    throw new ArgumentOutOfRangeException(nameof(value), "Intensity must be > 0");
-                intensity = value;
+                {
+                    throw new System.ArgumentOutOfRangeException(nameof(value));
+                }
+                _intensity = value;
             }
         }
 
         public bool BothButtonsRequired { get; set; }
         public bool VirtualDriverMethod { get; set; }
         public double IncrementalStep { get; set; }
-    }
 
+        #endregion
+    }
 }

@@ -1,39 +1,33 @@
 ﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using RecoilMacro.Model;
+using System.IO;
 using System.Windows;
 
 namespace RecoilMacro.Helpers
 {
     public class PresetManager
     {
-        private List<Preset> presets;
+        List<Preset> presets;
 
         public PresetManager()
         {
             presets = LoadPresets();
         }
 
-        private List<Preset> LoadPresets()
+        List<Preset> LoadPresets()
         {
             try
             {
-                string filePath = "presets.json";
-                if (File.Exists(filePath))
+                if (File.Exists("presets.json"))
                 {
-                    string json = File.ReadAllText(filePath);
+                    var json = File.ReadAllText("presets.json");
                     return JsonConvert.DeserializeObject<List<Preset>>(json) ?? new List<Preset>();
                 }
                 return new List<Preset>();
             }
-            catch (Exception ex)
+            catch (System.Exception ex)
             {
-                MessageBox.Show($"Error during loading presets: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"Error during loading presets: {ex.Message}");
                 return new List<Preset>();
             }
         }
@@ -42,13 +36,12 @@ namespace RecoilMacro.Helpers
         {
             try
             {
-                string filePath = "presets.json";
-                string json = JsonConvert.SerializeObject(presets, Formatting.Indented);
-                File.WriteAllText(filePath, json);
+                var json = JsonConvert.SerializeObject(presets, Formatting.Indented);
+                File.WriteAllText("presets.json", json);
             }
-            catch (Exception ex)
+            catch (System.Exception ex)
             {
-                MessageBox.Show($"Error during saving presets: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"Error during saving presets: {ex.Message}");
             }
         }
 
@@ -57,5 +50,4 @@ namespace RecoilMacro.Helpers
             return presets;
         }
     }
-
 }
