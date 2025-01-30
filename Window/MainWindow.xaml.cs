@@ -20,7 +20,6 @@ namespace RecoilMacro
         protected override void OnClosed(System.EventArgs e)
         {
             base.OnClosed(e);
-            if (DataContext is MainViewModel vm) vm.Cleanup();
             Application.Current.Shutdown();
         }
     }

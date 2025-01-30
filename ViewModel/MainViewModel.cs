@@ -1,18 +1,17 @@
-﻿using System.Collections.ObjectModel;
-using System.Diagnostics;
-using System.Runtime.InteropServices;
+﻿using System;
+using System.Collections.ObjectModel;
+using System.Linq;
 using System.Windows;
-using System.Windows.Forms;
 using System.Windows.Input;
 using System.Windows.Media;
 using Gma.System.MouseKeyHook;
+using Microsoft.Win32;
 using RecoilMacro.Converters;
 using RecoilMacro.Helpers;
 using RecoilMacro.Model;
+using RecoilMacro.Services;
 using RecoilMacro.ViewModel;
 using RecoilMacro.Window;
-using Application = System.Windows.Application;
-using MessageBox = System.Windows.MessageBox;
 
 namespace RecoilMacro
 {
@@ -20,33 +19,31 @@ namespace RecoilMacro
     {
         #region Private Fields
 
+        private readonly HookService _hookService;
+        private readonly MacroService _macroService;
+        private readonly PresetManager _presetManager;
+        private readonly AudioService _audioService;
         private bool _macroEnabled;
-        private bool _isPulling;
-        private bool _leftMouseButtonDown;
-        private bool _rightMouseButtonDown;
-        private bool _loadedDll;
-        private bool _isWindowHidden;
         private bool _disableSound;
         private bool _bothButtonsRequired;
         private bool _useVirtualDriver;
-
+        private bool _loadedDll;
+        private bool _isWindowHidden;
         private double _pullIntensity;
         private double _incrementalStep;
-        private double _currentIntensity;
-
         private string _statusMessage;
         private string _dllStatus = "DLL not loaded";
-
         private Brush _dllStatusColor = Brushes.Red;
-
-        private IKeyboardMouseEvents _globalHook;
-        private readonly AudioService _audioService;
-        private readonly PresetManager _presetManager;
-        private readonly Random _random = new();
-        private CDD _dd;
         private ObservableCollection<Preset> _presets;
         private Preset _selectedPreset;
-        private Stopwatch _stopwatch;
+        private bool _leftMouseDown;
+        private bool _rightMouseDown;
+        private bool _isSettingHotkey1;
+        private bool _isSettingHotkey2;
+        private string _hotkey1 = "None";
+        private Preset _hotkey1Preset;
+        private string _hotkey2 = "None";
+        private Preset _hotkey2Preset;
 
         #endregion
 
@@ -59,32 +56,20 @@ namespace RecoilMacro
             {
                 _macroEnabled = value;
                 OnPropertyChanged();
-
                 if (!_disableSound)
                 {
                     _audioService.PlaySound(_macroEnabled);
                 }
-
                 StatusMessage = _macroEnabled ? "Status: Active" : "Status: Inactive";
             }
         }
 
-        public double PullIntensity
+        public bool DisableSound
         {
-            get => _pullIntensity;
+            get => _disableSound;
             set
             {
-                _pullIntensity = value;
-                OnPropertyChanged();
-            }
-        }
-
-        public double IncrementalStep
-        {
-            get => _incrementalStep;
-            set
-            {
-                _incrementalStep = value;
+                _disableSound = value;
                 OnPropertyChanged();
             }
         }
@@ -106,16 +91,7 @@ namespace RecoilMacro
             {
                 _useVirtualDriver = value;
                 OnPropertyChanged();
-            }
-        }
-
-        public bool DisableSound
-        {
-            get => _disableSound;
-            set
-            {
-                _disableSound = value;
-                OnPropertyChanged();
+                UpdateMacroConfig();
             }
         }
 
@@ -126,6 +102,28 @@ namespace RecoilMacro
             {
                 _isWindowHidden = value;
                 OnPropertyChanged();
+            }
+        }
+
+        public double PullIntensity
+        {
+            get => _pullIntensity;
+            set
+            {
+                _pullIntensity = value;
+                OnPropertyChanged();
+                UpdateMacroConfig();
+            }
+        }
+
+        public double IncrementalStep
+        {
+            get => _incrementalStep;
+            set
+            {
+                _incrementalStep = value;
+                OnPropertyChanged();
+                UpdateMacroConfig();
             }
         }
 
@@ -187,12 +185,54 @@ namespace RecoilMacro
             }
         }
 
+        public string Hotkey1
+        {
+            get => _hotkey1;
+            set
+            {
+                _hotkey1 = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public Preset Hotkey1Preset
+        {
+            get => _hotkey1Preset;
+            set
+            {
+                _hotkey1Preset = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public string Hotkey2
+        {
+            get => _hotkey2;
+            set
+            {
+                _hotkey2 = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public Preset Hotkey2Preset
+        {
+            get => _hotkey2Preset;
+            set
+            {
+                _hotkey2Preset = value;
+                OnPropertyChanged();
+            }
+        }
+
         #endregion
 
         #region Commands
 
         public ICommand SavePresetCommand { get; }
         public ICommand LoadDllCommand { get; }
+        public ICommand StartSetHotkey1Command { get; }
+        public ICommand StartSetHotkey2Command { get; }
 
         #endregion
 
@@ -200,23 +240,27 @@ namespace RecoilMacro
 
         public MainViewModel()
         {
-            _statusMessage = "Status: Waiting...";
-
+            StatusMessage = "Status: Waiting...";
+            _audioService = new AudioService();
+            _presetManager = new PresetManager();
+            var dd = new CDD();
+            _macroService = new MacroService(_loadedDll, dd);
+            _hookService = new HookService();
+            _hookService.KeyDown += OnKeyDown;
+            _hookService.MouseDownExt += OnMouseDownExt;
+            _hookService.MouseUpExt += OnMouseUpExt;
+            _hookService.Start();
             SavePresetCommand = new RelayCommand(SavePreset);
             LoadDllCommand = new RelayCommand(LoadDllFile);
-
-            _presetManager = new PresetManager();
-            _audioService = new AudioService();
-
+            StartSetHotkey1Command = new RelayCommand(_ => StartSetHotkey1());
+            StartSetHotkey2Command = new RelayCommand(_ => StartSetHotkey2());
             PullIntensity = 1.0;
             IncrementalStep = 0.1;
             BothButtonsRequired = false;
             UseVirtualDriver = false;
             DisableSound = false;
-
             var loadedPresets = _presetManager.GetPresets();
             _presets = new ObservableCollection<Preset>(loadedPresets);
-
             if (!_presets.Any(x => x.Name == "Default"))
             {
                 _presets.Insert(0, new Preset
@@ -228,63 +272,59 @@ namespace RecoilMacro
                     BothButtonsRequired = false
                 });
             }
-
             SelectedPreset = _presets.FirstOrDefault();
-            SubscribeHooks();
         }
 
         #endregion
 
-        #region Preset Methods
+        #region Update Macro
+
+        private void UpdateMacroConfig()
+        {
+            _macroService.UpdateConfig(
+                baseIntensity: PullIntensity,
+                step: IncrementalStep,
+                useVirtualDriver: UseVirtualDriver,
+                loadedDll: _loadedDll
+            );
+        }
+
+        #endregion
+
+        #region Preset Logic
 
         private void SavePreset(object obj)
         {
-            if (_selectedPreset == null)
+            if (SelectedPreset == null)
             {
                 MessageBox.Show("No preset selected.");
                 return;
             }
-
-            bool isDefault = (_selectedPreset.Name == "Default");
+            bool isDefault = (SelectedPreset.Name == "Default");
             bool isUpdate = !isDefault;
-            string defaultName = isUpdate ? _selectedPreset.Name : GetNextAutoName();
-
+            string suggestedName = isUpdate ? SelectedPreset.Name : GetNextAutoName();
             var windowVm = new PresetViewModel(
                 "Enter preset name:",
-                defaultName,
+                suggestedName,
                 isUpdate,
                 _presetManager,
-                isDefault ? null : _selectedPreset
+                isDefault ? null : SelectedPreset
             );
-
             var presetWindow = new PresetWindow(windowVm);
             bool? result = presetWindow.ShowDialog();
-            if (result == true)
-            {
-                var all = _presetManager.GetPresets();
-                Presets = new ObservableCollection<Preset>(all);
+            if (result != true) return;
+            var freshList = _presetManager.GetPresets();
+            Presets = new ObservableCollection<Preset>(freshList);
+            var changedPreset = Presets
+                .FirstOrDefault(p => p.Name.Equals(windowVm.InputText, StringComparison.OrdinalIgnoreCase));
 
-                if (isDefault)
-                {
-                    var newPreset = _presets.FirstOrDefault(p =>
-                        p.Name.Equals(windowVm.InputText, StringComparison.OrdinalIgnoreCase));
-                    if (newPreset != null)
-                    {
-                        newPreset.Intensity = PullIntensity;
-                        newPreset.IncrementalStep = IncrementalStep;
-                        newPreset.BothButtonsRequired = BothButtonsRequired;
-                        newPreset.VirtualDriverMethod = UseVirtualDriver;
-                        _presetManager.SavePresets();
-                    }
-                }
-
-                var found = _presets.FirstOrDefault(x =>
-                    x.Name.Equals(windowVm.InputText, StringComparison.OrdinalIgnoreCase));
-                if (found != null)
-                {
-                    SelectedPreset = found;
-                }
-            }
+            if (changedPreset == null) return;
+            changedPreset.Intensity = PullIntensity;
+            changedPreset.IncrementalStep = IncrementalStep;
+            changedPreset.BothButtonsRequired = BothButtonsRequired;
+            changedPreset.VirtualDriverMethod = UseVirtualDriver;
+            _presetManager.SavePresets();
+            SelectedPreset = changedPreset;
         }
 
         private string GetNextAutoName()
@@ -296,20 +336,20 @@ namespace RecoilMacro
                     string suffix = p.Name.Substring("Custom Preset ".Length).Trim();
                     return int.TryParse(suffix, out int num) ? num : -1;
                 })
-                .Where(num => num > 0)
+                .Where(x => x > 0)
                 .ToList();
 
-            int nextNumber = existingNums.Any() ? existingNums.Max() + 1 : 1;
-            return $"Custom Preset {nextNumber}";
+            int next = existingNums.Any() ? existingNums.Max() + 1 : 1;
+            return $"Custom Preset {next}";
         }
 
         #endregion
 
-        #region DLL Methods
+        #region DLL
 
         private void LoadDllFile(object obj)
         {
-            var ofd = new Microsoft.Win32.OpenFileDialog
+            var ofd = new OpenFileDialog
             {
                 Filter = "DD|*.DLL"
             };
@@ -318,14 +358,15 @@ namespace RecoilMacro
                 return;
             }
 
-            _dd = new CDD();
-            int ret = _dd.Load(ofd.FileName);
+            var dd = _macroService.Cdd;
+
+            int ret = dd.Load(ofd.FileName);
             if (ret != 1)
             {
                 MessageBox.Show("Load Error");
                 return;
             }
-            ret = _dd.btn(0);
+            ret = dd.btn(0);
             if (ret != 1)
             {
                 MessageBox.Show("Initialize Error");
@@ -334,200 +375,147 @@ namespace RecoilMacro
             DllStatus = "DLL Loaded!";
             DllStatusColor = Brushes.Green;
             _loadedDll = true;
+            UpdateMacroConfig();
         }
 
         #endregion
 
-        #region Hooks
+        #region Hotkeys
 
-        private void SubscribeHooks()
+        private void StartSetHotkey1()
         {
-            _globalHook = Hook.GlobalEvents();
-            _globalHook.MouseDownExt += GlobalHookMouseDownExt;
-            _globalHook.MouseUpExt += GlobalHookMouseUpExt;
-            _globalHook.KeyDown += GlobalHookKeyDown;
+            Hotkey1 = "Press key...";
+            _isSettingHotkey1 = true;
+            _isSettingHotkey2 = false;
         }
 
-        private void UnsubscribeHooks()
+        private void StartSetHotkey2()
         {
-            if (_globalHook == null) return;
-
-            _globalHook.MouseDownExt -= GlobalHookMouseDownExt;
-            _globalHook.MouseUpExt -= GlobalHookMouseUpExt;
-            _globalHook.KeyDown -= GlobalHookKeyDown;
-            _globalHook.Dispose();
+            Hotkey2 = "Press key...";
+            _isSettingHotkey2 = true;
+            _isSettingHotkey1 = false;
         }
 
-        private void GlobalHookKeyDown(object sender, System.Windows.Forms.KeyEventArgs e)
+        private bool IsHotkeyMatch(string configured, string pressed)
         {
-            if (e.KeyCode == Keys.F3)
+            return configured.Equals(pressed, StringComparison.OrdinalIgnoreCase);
+        }
+
+        #endregion
+
+        #region Hook Events
+
+        private void OnKeyDown(System.Windows.Forms.KeyEventArgs e)
+        {
+            if (_isSettingHotkey1)
             {
-                Application.Current.Dispatcher.Invoke(() => MacroEnabled = !MacroEnabled);
+                e.Handled = true;
+                Hotkey1 = e.KeyCode.ToString();
+                _isSettingHotkey1 = false;
+                return;
             }
-            if (e.KeyCode == Keys.F6)
+            if (_isSettingHotkey2)
             {
-                Application.Current.Dispatcher.Invoke(() => IsWindowHidden = !IsWindowHidden);
+                e.Handled = true;
+                Hotkey2 = e.KeyCode.ToString();
+                _isSettingHotkey2 = false;
+                return;
+            }
+
+            if (IsHotkeyMatch(Hotkey1, e.KeyCode.ToString()) && Hotkey1Preset != null)
+            {
+                SelectedPreset = Hotkey1Preset;
+            }
+            else if (IsHotkeyMatch(Hotkey2, e.KeyCode.ToString()) && Hotkey2Preset != null)
+            {
+                SelectedPreset = Hotkey2Preset;
+            }
+
+            if (e.KeyCode == System.Windows.Forms.Keys.F3)
+            {
+                MacroEnabled = !MacroEnabled;
+            }
+            if (e.KeyCode == System.Windows.Forms.Keys.F6)
+            {
+                IsWindowHidden = !IsWindowHidden;
             }
         }
 
-        private void GlobalHookMouseDownExt(object sender, MouseEventExtArgs e)
+        private void OnMouseDownExt(MouseEventExtArgs e)
         {
-            if (e.Button == MouseButtons.Left)
+            if (_isSettingHotkey1)
             {
-                _leftMouseButtonDown = true;
+                e.Handled = true;
+                Hotkey1 = e.Button.ToString();
+                _isSettingHotkey1 = false;
+                return;
             }
-            else if (e.Button == MouseButtons.Right)
+            if (_isSettingHotkey2)
             {
-                _rightMouseButtonDown = true;
+                e.Handled = true;
+                Hotkey2 = e.Button.ToString();
+                _isSettingHotkey2 = false;
+                return;
+            }
+
+            if (IsHotkeyMatch(Hotkey1, e.Button.ToString()) && Hotkey1Preset != null)
+            {
+                SelectedPreset = Hotkey1Preset;
+            }
+            else if (IsHotkeyMatch(Hotkey2, e.Button.ToString()) && Hotkey2Preset != null)
+            {
+                SelectedPreset = Hotkey2Preset;
+            }
+
+            if (e.Button == System.Windows.Forms.MouseButtons.Left)
+            {
+                _leftMouseDown = true;
+            }
+            else if (e.Button == System.Windows.Forms.MouseButtons.Right)
+            {
+                _rightMouseDown = true;
             }
             if (ShouldStartPullMouse())
             {
-                StartPullMouse();
+                _macroService.StartPull();
             }
         }
 
-        private void GlobalHookMouseUpExt(object sender, MouseEventExtArgs e)
+        private void OnMouseUpExt(MouseEventExtArgs e)
         {
-            if (e.Button == MouseButtons.Left)
+            if (e.Button == System.Windows.Forms.MouseButtons.Left)
             {
-                _leftMouseButtonDown = false;
+                _leftMouseDown = false;
             }
-            else if (e.Button == MouseButtons.Right)
+            else if (e.Button == System.Windows.Forms.MouseButtons.Right)
             {
-                _rightMouseButtonDown = false;
+                _rightMouseDown = false;
             }
-            if (MacroEnabled && (!_leftMouseButtonDown || !_rightMouseButtonDown))
+            if (_macroEnabled && (!_leftMouseDown || !_rightMouseDown))
             {
-                StopPullMouse();
+                _macroService.StopPull();
             }
         }
-
-        #endregion
-
-        #region Macro Logic
 
         private bool ShouldStartPullMouse()
         {
-            if (DoubleValidationRule.HasAnyErrors)
-            {
-                return false;
-            }
-            if (!MacroEnabled)
-            {
-                return false;
-            }
+            if (DoubleValidationRule.HasAnyErrors) return false;
+            if (!_macroEnabled) return false;
             if (_bothButtonsRequired)
             {
-                return _leftMouseButtonDown && _rightMouseButtonDown;
+                return _leftMouseDown && _rightMouseDown;
             }
-            return _leftMouseButtonDown;
-        }
-
-        private void StartPullMouse()
-        {
-            if (_isPulling) return;
-
-            _isPulling = true;
-            _currentIntensity = _pullIntensity;
-            _stopwatch = new Stopwatch();
-            _stopwatch.Start();
-
-            Task.Run(async () =>
-            {
-                while (_isPulling)
-                {
-                    long ms = _stopwatch.ElapsedMilliseconds;
-                    _currentIntensity = _pullIntensity + (_incrementalStep * ms / 1000.0);
-                    int randomY = _random.Next(7, 15);
-
-                    if (!_useVirtualDriver)
-                    {
-                        MoveMouse(0, (int)(_currentIntensity * randomY));
-                    }
-                    else
-                    {
-                        if (!_loadedDll)
-                        {
-                            Application.Current.Dispatcher.Invoke(() =>
-                                MessageBox.Show("DLL not loaded", "Error", MessageBoxButton.OK, MessageBoxImage.Error));
-                            _useVirtualDriver = false;
-                            StopPullMouse();
-                            break;
-                        }
-                        _dd.movR(0, (int)(_currentIntensity * randomY));
-                    }
-                    await Task.Delay(10 + _random.Next(-4, 3));
-                }
-                _stopwatch.Stop();
-            });
-        }
-
-        private void StopPullMouse()
-        {
-            _isPulling = false;
-            Application.Current.Dispatcher.Invoke(() => StatusMessage = "Status: Inactive");
+            return _leftMouseDown;
         }
 
         #endregion
 
-        #region Cleanup/Dispose
-
-        public void Cleanup()
-        {
-            UnsubscribeHooks();
-        }
+        #region IDisposable
 
         public void Dispose()
         {
-            Cleanup();
-        }
-
-        #endregion
-
-        #region WinAPI
-
-        [DllImport("user32.dll", SetLastError = true)]
-        private static extern uint SendInput(uint nInputs, [MarshalAs(UnmanagedType.LPArray), In] INPUT[] pInputs, int cbSize);
-
-        private void MoveMouse(int dx, int dy)
-        {
-            INPUT[] inputs = new INPUT[1];
-            inputs[0].type = 0;
-            inputs[0].U.mi = new MOUSEINPUT
-            {
-                dx = dx,
-                dy = dy,
-                mouseData = 0,
-                dwFlags = 0x0001,
-                time = 0,
-                dwExtraInfo = IntPtr.Zero
-            };
-            SendInput(1, inputs, INPUT.Size);
-        }
-
-        public struct INPUT
-        {
-            public uint type;
-            public InputUnion U;
-            public static int Size => Marshal.SizeOf(typeof(INPUT));
-        }
-
-        [StructLayout(LayoutKind.Explicit)]
-        public struct InputUnion
-        {
-            [FieldOffset(0)]
-            public MOUSEINPUT mi;
-        }
-
-        [StructLayout(LayoutKind.Sequential)]
-        public struct MOUSEINPUT
-        {
-            public int dx;
-            public int dy;
-            public uint mouseData;
-            public uint dwFlags;
-            public uint time;
-            public IntPtr dwExtraInfo;
+            _hookService.Dispose();
+            _macroService.StopPull();
         }
 
         #endregion

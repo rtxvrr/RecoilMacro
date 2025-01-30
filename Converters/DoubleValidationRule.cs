@@ -37,7 +37,8 @@ namespace RecoilMacro.Converters
 
             text = text.Replace('.', ',');
 
-            if (double.TryParse(text, NumberStyles.Float, cultureInfo, out double d))
+            var ru = CultureInfo.GetCultureInfo("ru-RU");
+            if (double.TryParse(text, NumberStyles.Float, ru, out double d))
             {
                 if (!AllowNegative && d < 0)
                 {
